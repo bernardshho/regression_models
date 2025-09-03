@@ -29,6 +29,8 @@ $$
 \end{align*}
 $$
 
+<div style="page-break-after: always;"></div>
+
 2. Determine the variance of $\beta_0$
 
 $$
