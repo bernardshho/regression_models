@@ -128,3 +128,53 @@ $$
 $$
 
 <div style="page-break-after: always;"></div>
+
+
+4. Inference and result
+
+
+- **Linear model fit:** 
+$$
+\widehat{\text{RTEN}} = -0.593 \;+\; 1.097 \cdot \text{PREP}
+$$
+- **Estimates:**
+```
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.90625 -0.20008  0.06453  0.21065  0.60091 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept) -0.59257    0.42265  -1.402    0.168    
+X            1.09742    0.05615  19.543   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.347 on 41 degrees of freedom
+Multiple R-squared:  0.9031,	Adjusted R-squared:  0.9007 
+F-statistic: 381.9 on 1 and 41 DF,  p-value: < 2.2e-16
+```
+
+- **Interpretation:** A 1 unit increase in the preparedness rating of the judge increases their retention score by 1.10 on average. 
+
+- **Inference:**
+
+To see whether trial preparation (PREP) is a statistically significant predictor of retention ratings (RTEN), we test the hypotheses below:
+\[
+H_0: \beta_1 = 0 
+\qquad \text{vs.} \qquad 
+H_a: \beta_1 \neq 0.
+\]
+
+The linear model we fit gives the resutls below:
+\[
+\hat{\beta}_1 = 1.097, \quad SE(\hat{\beta}_1) = 0.056, \quad t = 19.54, \quad p < 2 \times 10^{-16}.
+\]
+
+Since the $p$-value is significantly less than 0.05, we reject $H_0$ and conclude that trial preparation is a statistically significant predictor of retention ratings at the 5\% confidence level.
+
+A 95\% confidence interval for the slope is given by
+\[
+1.097 \pm 2.02 \times 0.056 = (0.985,\; 1.209),
+\]
+so, for a one-unit increase in trial preparation rating, we expect that the retention rating would increase by between $0.99$ and $1.21$ points.
