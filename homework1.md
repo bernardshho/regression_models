@@ -72,7 +72,59 @@ $$
 
 $$
 \begin{align*}
-\operatorname{Var}(\hat{\beta_0}) = \operatorname{Var}(\bar{y}) + \operatorname{Var}(\hat{\beta_1}\bar{x})\\
+\operatorname{Cov}(\bar{y}, \hat{\beta_1}\bar{x}) &= \bar{x}\operatorname{Cov}(\bar{y}, \hat{\beta_1})\\
+\operatorname{Cov}(\bar{y}, \hat{\beta_1}\bar{x}) &= \bar{x}\operatorname{Cov}(\frac{1}{n}\sum_{i=1}^{n}y_i, \frac{\sum_{i=1}^{n}(x_i - \bar{x})(y_i - \bar{y})}{\sum_{i=1}^{n}(x_i - \bar{x})^2}) \qquad \qquad \text{\footnotesize (definition from class notes)}\\
+\operatorname{Cov}(\bar{y}, \hat{\beta_1}\bar{x}) &= \bar{x} \cdot \frac{1}{n\sum_{i=1}^{n}(x_i - \bar{x})^2}\operatorname{Cov}(\sum_{i=1}^{n}y_i, \sum_{i=1}^{n}(x_i - \bar{x})(y_i - \bar{y}))\\
+\operatorname{Cov}(\bar{y}, \hat{\beta_1}\bar{x}) &= \bar{x} \cdot \frac{1}{n\sum_{i=1}^{n}(x_i - \bar{x})^2}\operatorname{Cov}(\sum_{i=1}^{n}y_i, \sum_{i=1}^{n}(x_i - \bar{x})(y_i) - \bar{y}\sum_{i=1}^{n}(x_i - \bar{x}))\\
+\operatorname{Cov}(\bar{y}, \hat{\beta_1}\bar{x}) &= \bar{x} \cdot \frac{1}{n\sum_{i=1}^{n}(x_i - \bar{x})^2}\operatorname{Cov}(\sum_{i=1}^{n}y_i, \sum_{i=1}^{n}(x_i - \bar{x})(y_i)) \qquad \text{\footnotesize (special zero from class)}\\
+\operatorname{Cov}(\bar{y}, \hat{\beta_1}\bar{x}) &= \bar{x} \cdot \frac{1}{n\sum_{i=1}^{n}(x_i - \bar{x})^2}\sum_{i=1}^{n}(x_i - \bar{x})\sum_{i=1}^{n}\operatorname{Cov}(y_i, y_i) \\
+\sum_{i=1}^{n}(x_i - \bar{x}) &=0 \\
+\operatorname{Cov}(\bar{y}, \hat{\beta_1}\bar{x}) &= 0 \\
+\end{align*}
+$$
+
+
+
+$$
+\begin{align*}
+\operatorname{Var}(\hat{\beta_0}) = \operatorname{Var}(\bar{y}) + \operatorname{Var}(\hat{\beta_1}\bar{x}) + \operatorname{Cov}(\bar{y}, \hat{\beta_1}\bar{x})\\
+\operatorname{Var}(\hat{\beta_0}) = \operatorname{Var}(\bar{y}) + \operatorname{Var}(\hat{\beta_1}\bar{x}) + 0\\
 \boxed{\operatorname{Var}(\hat{\beta_0}) = \frac{\sigma^2}{n} + \bar{x}^2 \frac{\sigma^2}{\sum_{i=1}^{n}(x_i - \bar{x})} }
 \end{align*}
 $$
+
+<div style="page-break-after: always;"></div>
+
+3(a). Show that $\sum_{i=1}^{n}\hat{y_i} \cdot e_i = 0$
+
+$$
+\begin{align*}
+\sum_{i=1}^{n}\hat{y_i} \cdot e_i &= 0\\
+\sum_{i=1}^{n} (\hat{\beta_0} + \hat{\beta_1}x_i)(e_i) &=0\\
+\sum_{i=1}^{n} \hat{\beta_0}(e_i)  + \hat{\beta_1}(x_i) (e_i)&=0 \\
+\sum_{i=1}^{n} \hat{\beta_0}(e_i)  + \sum_{i=1}^{n} \hat{\beta_1}(x_i) (e_i)&=0 \\
+\hat{\beta_0}\sum_{i=1}^{n} (e_i)  + \hat{\beta_1}\sum_{i=1}^{n} (x_i) (e_i)&=0 \\
+\sum_{i=1}^{n} (e_i)&= 0 \qquad \qquad \text{\footnotesize (from property 1)}\\
+\sum_{i=1}^{n} (x_i) (e_i)&= 0 \qquad \qquad \text{\footnotesize (from property 4)}\\
+\hat{\beta_0} \cdot 0  + \hat{\beta_1} \cdot 0 &=0 \\
+0 &= 0
+\end{align*}
+$$
+
+
+3(b). Show that regression line passes through $(\bar{x}, \bar{y})$
+
+$$
+\begin{align*}
+\hat{y_i} &= \hat{\beta_0} + \hat{\beta_1}x_i \\
+\text{let } x_i &= \bar{x} \\
+\hat{y_i} &= \hat{\beta_0} + \hat{\beta_1}\bar{x} \\
+\hat{y_i} &= \bar{y} - \beta_1\bar{x} + \hat{\beta_1}\bar{x} \qquad \qquad \text{\footnotesize (from normal equations)}\\ 
+\hat{y_i} &= \bar{y} \\
+\end{align*}
+$$
+$$
+\text{this shows that the regression line passes through } (\bar{x}, \bar{y})
+$$
+
+<div style="page-break-after: always;"></div>
