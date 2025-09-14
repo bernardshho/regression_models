@@ -153,7 +153,7 @@ $$
 
 $$
 \boxed{ \;
-\sigma^2 = \frac{\sum_{i=1}^n \bigl(y_i - \beta_0 - \beta_1 x_i\bigr)^2}{n}
+\sigma^2_{MLE} = \frac{\sum_{i=1}^n \bigl(y_i - \beta_0 - \beta_1 x_i\bigr)^2}{n}
 \;}
 $$
 
