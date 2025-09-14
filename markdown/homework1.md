@@ -1,6 +1,6 @@
 ## Homework 1. 
 
-### Question 1. 
+### Theory
 1. Show that $\beta_0$ is unbiased
 
 $$
@@ -130,7 +130,38 @@ $$
 <div style="page-break-after: always;"></div>
 
 
-4. Inference and result
+4. Derive the MLE of $\sigma^2$
+
+$$
+\begin{aligned}
+y_i &= \beta_0 + \beta_1 x_i + \varepsilon_i, \quad && i = 1, \ldots, n, \\[6pt]
+\varepsilon_i &= y_i - \beta_0 - \beta_1 x_i, \\[6pt]
+\varepsilon_i &\sim \mathcal{N}(0, \sigma^2), \\[6pt]
+y_i - \beta_0 - \beta_1 x_i &\sim \mathcal{N}(0, \sigma^2)\\
+L(\beta_0,\beta_1,\sigma^2 \mid \{(x_i,y_i)\}_{i=1}^n)
+&= \prod_{i=1}^n \frac{1}{\sqrt{2\pi\sigma^2}}
+\exp\!\left(-\frac{(y_i-\beta_0-\beta_1 x_i)^2}{2\sigma^2}\right)\\
+L &= (2\pi\sigma^2)^{-n/2}\exp\!\left(-\frac{1}{2\sigma^2}\sum_{i=1}^n (y_i-\beta_0-\beta_1 x_i)^2\right) \\
+\ln L &= -\frac{n}{2} \log(2\pi\sigma^2) - \frac{1}{2\sigma^2} \sum_{i=1}^n (y_i - \beta_0 - \beta_1 x_i)^2 \\
+\frac{\partial \ln L}{\partial \sigma^2} &= -\frac{n}{2\sigma^2} + \frac{1}{2(\sigma^2)^2}\sum_{i=1}^n \bigl(y_i - \beta_0 - \beta_1 x_i\bigr)^2 \\
+\frac{\partial \ln L}{\partial \sigma^2} &= 0\\ 
+0 &= -\frac{n}{2\sigma^2} + \frac{1}{2(\sigma^2)^2}\sum_{i=1}^n \bigl(y_i - \beta_0 - \beta_1 x_i\bigr)^2 \\ 
+\frac{n}{2\sigma^2} &= \frac{1}{2(\sigma^2)^2}\sum_{i=1}^n \bigl(y_i - \beta_0 - \beta_1 x_i\bigr)^2 \\
+n &= \frac{1}{\sigma^2}\sum_{i=1}^n \bigl(y_i - \beta_0 - \beta_1 x_i\bigr)^2 \\
+\end{aligned} 
+$$
+
+$$
+\boxed{ \;
+\sigma^2 = \frac{\sum_{i=1}^n \bigl(y_i - \beta_0 - \beta_1 x_i\bigr)^2}{n}
+\;}
+$$
+
+<div style="page-break-after: always;"></div>
+
+### Methods
+
+Inference and result
 
 
 - **Linear model fit:** 
