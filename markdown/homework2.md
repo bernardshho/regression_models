@@ -24,19 +24,14 @@ Let \(Q = (Y - X\beta)'(Y - X\beta) = Y'Y - 2\beta'X'Y + \beta'X'X\beta\). Then:
 
 
 Set the derivative to zero:
-
-\[
-\frac{1}{\sigma^2} (2X'Y - 2X'X\beta) = 0
-\]
-\[
-X'X\beta = X'Y
-\]
-\[
-\hat{\beta}_{MLE} = (X'X)^{-1}X'Y
-\]
-
+$$
+\begin{aligned}
+\frac{1}{\sigma^2} (2X'Y - 2X'X\beta) &= 0 \\
+X'X\beta &= X'Y \\
+\hat{\beta}_{MLE} &= (X'X)^{-1}X'Y
+\end{aligned}
+$$
 <div style="page-break-after: always;"></div>
-
 
 ##### Question 2. Demonstrate that $\hat{\beta}$ is an unbiased estimator of $\beta$
 
@@ -70,21 +65,16 @@ $$
 &= (X'X)^{-1}X' \cdot \text{Cov}(\varepsilon) \cdot [(X'X)^{-1}X']'\\
 &= (X'X)^{-1}X' \cdot (\sigma^2 I_n) \cdot X(X'X)^{-1}\\
 &= (\sigma^2 I_n) (X'X)^{-1}X'X(X'X)^{-1} \\
-&= (\sigma^2 I_n) (X'X)^{-1} 
+&= (\sigma^2 I_n) (X'X)^{-1} \\
 \end{aligned} 
 $$
-\[
-\boxed{\text{Cov}(\hat{\beta}) = (\sigma^2 I_n) (X'X)^{-1}} \\
-\]
-
-
 
 \[
 \operatorname{E}(X) = \beta \quad \quad \text{Cov}(\hat{\beta}) = (\sigma^2 I_n) (X'X)^{-1}
 \]
 
 
-A linear transformation of a multivariate normal is also a multivariate normal, and 
+A **linear transformation** of a multivariate normal is also a **multivariate normal**, and 
 \[
 \hat{\beta} = A + C(\epsilon) 
 \]
