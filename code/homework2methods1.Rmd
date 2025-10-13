@@ -1,0 +1,154 @@
+---
+title: "US Judge ratings"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+## Regression Analysis for USJudgeRatings
+This will be split into 5 step, 
+1. Preliminary data exploration to understand relationship between target variable `RTEN` and `PREP` and pltting the 2 variables against each other.
+2. Simple Linear Relationship: Building a simple linear regression between `RTEN` and `PREP` and Plotting residuals against trial preparation variable to see if the relationship is linear
+3. Variable selection: Running an F test to see if additional variables are needed
+4. Multiple Linear Relationship: using an algorithmic approach to see if other variables are needed
+5. Building final model and interpretation
+\newpage
+STEP 1. DATA PREPARATION
+```{r}
+# 1. Basic structure & missingness
+cat("Missing values:", sum(is.na(USJudgeRatings)), "\n")
+cat("\nNo missing values -- ok to proceed with whole dataset")
+```
+
+Zooming into the trial preparation vs retention, we see that there is a linear relationship between the 2 variables - this justifies our selection for a simple linear regression between `RTEN` and `PREP`
+```{r}
+# Focused plot for Trial Preparation vs Retention Rating
+plot(USJudgeRatings$PREP, USJudgeRatings$RTEN,
+     xlab = "Trial Preparation Rating", 
+     ylab = "Retention Rating (RTEN)",
+     main = "Primary Relationship: Trial Preparation vs Retention",
+     pch = 16, col = "blue", cex = 1.2)
+```
+\newpage
+STEP 2. SIMPLE LINEAR MODEL OF `RTEN` AGAINST `PREP`
+
+We see that a 1 unit increase in the preparedness of the judge increases their retention by 1.09 points. This model also has a high adjusted $$R^2$$ of 0.90, indicating that over 90% of the variation in judge retention can be explained by the judge preparation variable alone.
+
+```{r}
+model_prep <- lm(RTEN ~ PREP, data = USJudgeRatings)
+summary(model_prep)
+```
+We see that the plot between the residuals and the trial preparation variable resemble a random scatter, suggesting that there is in fact a linear relationship between trial preparation and judge retention.
+```{r}
+plot(USJudgeRatings$PREP, residuals(model_prep),
+     xlab = "Trial Preparation Rating",
+     ylab = "Residuals",
+     main = "Residuals vs Trial Preparation",
+     pch = 16, col = "purple")
+```
+\newpage
+STEP 3. CHECKING IF OTHER COVARIATES ARE NEEDED
+
+Running an F test against all the other variables to see if the other variables are needed. 
+
+For the F test, the null hypothesis states that all coefficients for the additional judicial rating variables (besides PREP) are equal to zero, meaning they provide no additional explanatory power for predicting retention ratings beyond what is already captured by trial preparation alone.
+
+We see that the P value of the F test is near zero, and statistically significant at the 0.1% level, which presents strong evidence against rejecting the null; this indicates that other variables are needed in the model.
+
+```{r}
+# Complex model: PREP + all other variables
+model_complex <- lm(RTEN ~ ., data = USJudgeRatings)  # . means all other variable
+# F-test to compare nested models
+f_test_result <- anova(model_prep, model_complex, test='F')
+print(f_test_result)
+```
+\newpage
+
+STEP 4. MODEL SELECTION AND VARIABLE SELECTION
+
+
+Using the leaps package, we see that the model with both a high R^2 and a more parsimonious model, with only 5 covariates.
+```{r}
+library(leaps)
+
+##### Adjusted R^2 for Judicial Ratings #####
+best_adjr2 <- leaps(x = USJudgeRatings[,-which(names(USJudgeRatings) == "RTEN")], 
+                    y = USJudgeRatings$RTEN,
+                    method = 'adjr2')
+
+# Create readable output
+models <- best_adjr2$which
+adjR2 <- cbind(models, round(best_adjr2$adjr2, digits = 5))
+colnames(adjR2) <- c(names(USJudgeRatings)[names(USJudgeRatings) != "RTEN"], 'adjR2')
+
+# Display models sorted by adjusted R² (highest first)
+top_10_adjr2 <- adjR2[order(best_adjr2$adjr2, decreasing = TRUE),][1:10,]
+print(top_10_adjr2)
+```
+Based on this R^2 selection criteria, lets build RTEN ~ INTG, DMNR, DECI, ORAL, PHYS
+
+```{r}
+model_r2 = lm(RTEN ~ INTG+ DMNR+ DECI+ ORAL+ PHYS, data=USJudgeRatings)
+summary(model_r2)
+```
+Lets also check the BIC -- we see as expected, the model with the lowest BIC is the model with 5 covariates- it is also of note that the preparation variable is not included.
+```{r}
+# Get the top 10 models by adjusted R²
+top_10_adjr2 <- adjR2[order(best_adjr2$adjr2, decreasing = TRUE),][1:10,]
+
+# Calculate BIC for each of the top 10 models
+n <- nrow(USJudgeRatings)
+bic_values <- numeric(10)
+
+for(i in 1:10) {
+  # Get which variables are in this model
+  model_vars <- names(which(top_10_adjr2[i, 1:11] == 1))  # First 11 columns are variables
+  
+  # Build the formula
+  if(length(model_vars) > 0) {
+    formula <- as.formula(paste("RTEN ~", paste(model_vars, collapse = " + ")))
+    model <- lm(formula, data = USJudgeRatings)
+    bic_values[i] <- BIC(model)
+  } else {
+    # Intercept-only model
+    model <- lm(RTEN ~ 1, data = USJudgeRatings)
+    bic_values[i] <- BIC(model)
+  }
+}
+
+# Create final results table - convert to data frame first
+top_10_with_bic <- data.frame(top_10_adjr2, BIC = bic_values)
+
+# Sort by BIC (lower is better)
+top_10_with_bic[order(top_10_with_bic$BIC), ]
+```
+\newpage
+Step 5. building the final model and interpretation
+
+```{r}
+summary(model_r2)
+```
+Overall Model Significance 
+F-statistic = 806.1 with p-value < 2.2e-16
+Adjusted R-squared:  0.9897
+
+Extremely significant - the model as a whole explains retention ratings
+
+Interpretation of Coefficients:
+
+Judicial Integrity (INTG) - For each 1-point increase in integrity rating, retention rating increases by 0.378 points, holding other judicial qualities constant
+
+Demeanor (DMNR) - Each 1-point increase in demeanor rating corresponds to a 0.152 point increase in retention rating, adjusting for other factors
+
+Decisiveness (DECI)- More decisive judges receive 0.167 point higher retention ratings per 1-point decisiveness increase
+
+Oral Ruling Quality (ORAL) - Superior oral rulings boost retention ratings by 0.292 points per 1-point quality increase
+
+Physical Ability (PHYS) - Physical ability has the strongest impact: 0.283 point retention increase per 1-point ability increase
+
+Model Performance:
+R² = 0.9909: 99.09% of retention rating variance explained
+
+Adjusted R² = 0.9897: Exceptional fit even after penalizing for 5 predictors
+
+Key Insight:
+Physical ability and judicial integrity emerge as the most powerful predictors, while your original focus on trial preparation (PREP) was correctly excluded. Lawyers appear to value overall judicial competence and presence more than specific trial skills.
