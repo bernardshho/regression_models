@@ -1,0 +1,206 @@
+---
+title: "Midterm - exploratory"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+# step 0. Lets clean quickly
+df <- read.csv('../midterm/data/vehicle_price_prediction.csv')
+
+str(df)
+summary(df)
+colSums(is.na(df)) # no nulls, good to go
+
+
+# step 1. Lets sample from this large 
+
+# Set a seed for reproducibility
+set.seed(42)
+
+# Take a random sample of up to 10,000 rows
+df_sample <- df[sample(nrow(df), size = min(10000, nrow(df))), ]
+head(df_sample)
+
+# step 2. building up the linear model
+# data transformation -- brand popularity scaled as the values range from 0.39 to 0.40
+df_sample$brand_popularity_std <- scale(df_sample$brand_popularity)
+df_sample <- transform(
+  df_sample,
+  mileage_k = (mileage - mean(mileage))/1000,          # center & put in thousands
+  age_c     = scale(vehicle_age, center=TRUE, scale=FALSE)
+)
+head(df_sample)
+```
+
+```{r}
+# Step 1. Variable selection using forward steps
+
+# Install if needed
+# install.packages(c("leaps", "broom"))
+
+library(leaps)
+
+cont_vars <- c(
+  "year", "mileage", "engine_hp", "owner_count",
+  "vehicle_age", "mileage_per_year", "brand_popularity"
+)
+fmla <- as.formula(paste("log(price) ~", paste(cont_vars, collapse = " + ")))
+
+# Run exhaustive subset search
+regfit <- regsubsets(
+  fmla,
+  data = df_sample,
+  nbest = 1,
+  nvmax = length(cont_vars),
+  method = "exhaustive"
+)
+
+reg_summary <- summary(regfit)
+reg_summary
+```
+
+```{r}
+### Identified the models below via variable importance
+
+# Model 1: mileage
+m1 <- lm(log(price) ~ mileage, data = df_sample)
+
+# Model 2: mileage + engine_hp
+m2 <- lm(log(price) ~ mileage + engine_hp, data = df_sample)
+
+# Model 3: mileage + engine_hp + vehicle_age
+m3 <- lm(log(price) ~ mileage + engine_hp + vehicle_age, data = df_sample)
+
+# Model 4: mileage + engine_hp + vehicle_age + mileage_per_year
+m4 <- lm(log(price) ~ mileage + engine_hp + vehicle_age + mileage_per_year, data = df_sample)
+
+# Model 5: mileage + engine_hp + owner_count + vehicle_age + mileage_per_year
+m5 <- lm(log(price) ~ mileage + engine_hp + owner_count + vehicle_age + mileage_per_year, data = df_sample)
+
+# Model 6: mileage + engine_hp + owner_count + vehicle_age + mileage_per_year + brand_popularity
+m6 <- lm(log(price) ~ mileage + engine_hp + owner_count + vehicle_age + mileage_per_year + brand_popularity, data = df_sample)
+
+# Model 7: year + mileage + engine_hp + owner_count + vehicle_age + mileage_per_year + brand_popularity
+m7 <- lm(log(price) ~ year + mileage + engine_hp + owner_count + vehicle_age + mileage_per_year + brand_popularity, data = df_sample)
+
+# Names of the *new* variable added at each step
+added_vars <- c(
+  "mileage",                     # first variable
+  "+ engine_hp",                 # added second
+  "+ vehicle_age",               # added third
+  "+ mileage_per_year",          # added fourth
+  "+ owner_count",               # added fifth
+  "+ brand_popularity",          # added sixth
+  "+ year"                       # added last
+)
+
+# Compute metrics
+r2_values <- c(summary(m1)$r.squared,
+               summary(m2)$r.squared,
+               summary(m3)$r.squared,
+               summary(m4)$r.squared,
+               summary(m5)$r.squared,
+               summary(m6)$r.squared,
+               summary(m7)$r.squared)
+
+adjr2_values <- c(summary(m1)$adj.r.squared,
+                  summary(m2)$adj.r.squared,
+                  summary(m3)$adj.r.squared,
+                  summary(m4)$adj.r.squared,
+                  summary(m5)$adj.r.squared,
+                  summary(m6)$adj.r.squared,
+                  summary(m7)$adj.r.squared)
+
+aic_values <- c(AIC(m1), AIC(m2), AIC(m3), AIC(m4), AIC(m5), AIC(m6), AIC(m7))
+bic_values <- c(BIC(m1), BIC(m2), BIC(m3), BIC(m4), BIC(m5), BIC(m6), BIC(m7))
+
+# Combine into a data frame
+results <- data.frame(
+  Step = 1:7,
+  Added_Variable = added_vars,
+  R2 = round(r2_values, 4),
+  Adj_R2 = round(adjr2_values, 4),
+  AIC = round(aic_values, 2),
+  BIC = round(bic_values, 2)
+)
+
+# Print neatly
+print(results, row.names = FALSE)
+```
+
+```{r}
+# Base continuous model
+m_base <- lm(log(price) ~ mileage + engine_hp + vehicle_age, data = df_sample)
+cat_vars <- c("transmission", "fuel_type", "drivetrain", "body_type",
+              "accident_history", "seller_type", "condition", "trim")
+df_sample[cat_vars] <- lapply(df_sample[cat_vars], factor)
+# Initialize storage
+results <- data.frame(Variable = character(),
+                      F_value = numeric(),
+                      df = integer(),
+                      p_value = numeric(),
+                      stringsAsFactors = FALSE)
+
+# Loop through each categorical variable
+for (v in cat_vars) {
+  fmla <- as.formula(paste("log(price) ~ mileage + engine_hp + vehicle_age +", v))
+  m_test <- lm(fmla, data = df_sample)
+  a <- anova(m_base, m_test)
+  
+  # Extract the F-stat and p-value from the second row (the comparison)
+  results <- rbind(results, data.frame(
+    Variable = v,
+    F_value = round(a$F[2], 3),
+    df = a$Df[2],
+    p_value = signif(a$`Pr(>F)`[2], 4)
+  ))
+}
+
+# Sort by p-value
+# Round F-values and p-values neatly
+results$F_value <- round(results$F_value, 3)
+results$p_value <- formatC(results$p_value, digits = 7, format = "f")
+
+# Sort again by p-value if needed
+results <- results[order(as.numeric(results$p_value)), ]
+
+print(results, row.names = FALSE)
+
+```
+
+```{r}
+model_3 <- lm(
+  log(price) ~ mileage + I(mileage^2) + log(engine_hp) +
+    mileage:log(engine_hp) + I(mileage^2):log(engine_hp),
+  data = df_sample
+)
+
+summary(model_3)
+# assuming model name m_full or m_full_int
+par(mfrow = c(2, 2))
+plot(model_3)   # residuals, QQ, scale-location, Cook’s D
+par(mfrow = c(1, 1))
+```
+
+```{r}
+model_4 <- lm(
+  log(price) ~
+    # Continuous + interaction structure
+    mileage + I(mileage^2) + log(engine_hp) +
+    mileage:log(engine_hp) + I(mileage^2):log(engine_hp) +
+    
+    # Significant categorical predictors
+    factor(accident_history) + factor(condition) + factor(seller_type) + factor(body_type),
+  data = df_sample
+)
+
+# Diagnostic plots
+par(mfrow = c(2, 2))
+plot(model_4)
+par(mfrow = c(1, 1))
+
+# Model summary
+summary(model_4)
+```
